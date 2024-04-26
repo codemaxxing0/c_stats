@@ -2,11 +2,12 @@
 #include <string.h>
 #include "cell.h"
 
+char table[5][3] = {0.0};
+
 int main(void){
 
     char filepath[100] = "/home/matt/Desktop/c_stats/examples/example_01.csv";
     FILE* contents = fopen(filepath, "r");
-
     rewind(contents);
 
     int idx = -1;
@@ -21,12 +22,9 @@ int main(void){
 
         while(token){
             ++idy;
-            
-            Cell table_cell;
-            setCellItems(&table_cell, idx, idy, *token);
-            //puts(token);
-
             token = strtok(NULL, ",");
+            puts(token);
+            
         }
         
     }

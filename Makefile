@@ -1,5 +1,13 @@
-all:
-	gcc main.c -o out -Wall | ./out
+.PHONY: all
 
+all: main
+
+main: main.o
+	gcc -o main main.o
+
+main.o: main.c
+	gcc main.c -o main.o -Wall -Wextra
+
+.PHONY: clean
 clean:
-	rm -rf out
+	rm -f *.o main
