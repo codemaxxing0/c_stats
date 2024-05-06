@@ -74,7 +74,7 @@ void usage(void){
 
 // TODO: FIX THIS
 void print_table(char table[10][10][100]){
-    int i, j, k;
+    int i, j;
 
     // Print column headers
     printf("      ");
