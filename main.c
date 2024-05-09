@@ -3,18 +3,28 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
-// TABLE STRUCT
+// STRUCTS
 typedef struct {
     char ***data;
     int rows;
     int cols;
 } Table;
 
+typedef struct {
+    char **file_content;
+    int n_rows;
+} Raw_file;
+
+
 // PROTOTYPES
 void print_usage(void);
 void print_table(Table *table);
 Table *read_csv(char *filepath);
+Raw_file *_read_file_lines(char *filepath);
+void _free_file_lines(Raw_file *raw_file);
+void _print_file_lines(Raw_file *raw_file);
 
 
 // MAIN
@@ -23,8 +33,11 @@ int main(int argc, char *argv[]){
     if (argc == 2)
     {
 
-        Table *table = read_csv(argv[1]);
-        print_table(table); 
+        Raw_file *raw = _read_file_lines(argv[1]);
+        _print_file_lines(raw);
+
+        //Table *table = read_csv(argv[1]);
+        //print_table(table); 
         
         return 0;
     }
@@ -36,7 +49,7 @@ int main(int argc, char *argv[]){
 }
 
 
-// IMPLEMENTATION
+// DEFINITIONS
 void print_usage(void){
     printf("\n1 argument expected\n");
     printf("arg1: provide path to file\n");
@@ -159,4 +172,131 @@ Table *read_csv(char *filepath) {
     fclose(file_handler);
     free(buffer);
     return table;
+}
+
+Raw_file *_read_file_lines(char *filepath){
+
+    /*
+    utility function that will read any text file and
+    store its lines content in a dinamically allocated arrays
+    of arrays
+    */
+    
+    const int n_lines = 1024;
+    const int n_chars = 1024;
+
+    FILE *file_handler = fopen(filepath, "r");
+    if (file_handler == NULL) {
+        printf("Error opening the file!\n");
+        return 1;
+    }
+    
+    char **file_lines;
+    
+    // initialize space allocation
+    file_lines = malloc(sizeof(char *) * n_lines);
+    size_t total_lines_read = 0;
+    size_t total_chars_read = 0;
+    char read_char;
+    
+    // loop will read each char from the file until the end of the file is 
+    // reached or an error occurs reading from the file
+    do 
+    {
+        // read char from the file and store it
+        read_char = fgetc(file_handler);
+        
+        // if error occurs reading from file
+        if (ferror(file_handler))
+        {
+            printf("Error reading from file.\n");
+            return 1;
+        }
+        
+        // if we reach the end of the file stop reading from the file
+        if (feof(file_handler))
+        {
+
+            if (total_chars_read != 0)
+            {        
+                // allocate enough mem to store the string
+                file_lines[total_lines_read] = realloc(file_lines[total_lines_read], total_chars_read + 1 );
+                
+                // end string by placing null terminator
+                file_lines[total_lines_read][total_chars_read] = '\0';
+                total_lines_read++;
+            }
+            
+            break; 
+        }
+        
+        if (total_chars_read == 0) 
+        {
+            file_lines[total_lines_read] = malloc(n_chars);
+        }
+        
+        // store the char into "the current index of the current line" we've read in
+        file_lines[total_lines_read][total_chars_read] = read_char; 
+        
+        // increment total_chars_read as we have just read in another char
+        total_chars_read++;
+        
+        // if the char is a newline, we have reached the end of the current line
+        if (read_char == '\n')
+        {
+
+            file_lines[total_lines_read] = realloc(file_lines[total_lines_read], total_chars_read + 1 );
+            file_lines[total_lines_read][total_chars_read] = '\0';
+            
+            total_lines_read++;
+    
+            total_chars_read = 0;
+            
+            if (total_lines_read % n_lines == 0)
+            {
+                size_t new_size = total_lines_read + n_lines;
+                file_lines = realloc(file_lines, sizeof(char *) * new_size);
+            }
+
+        }
+        else if (total_chars_read % n_chars == 0)
+        {
+        // We increase the size of the array by n_chars and use realloc to
+        // reallocate space for this larger block of memory.
+        size_t new_size = total_chars_read + n_chars;
+        file_lines[total_lines_read] = 
+            realloc(file_lines[total_lines_read], new_size); 
+        }
+
+    } while (true);
+
+    // now we know exactly how many lines we have read from the file and
+    // can reallocate the block of memory for the array of pointers to chars to be
+    // exactly the size required.
+    file_lines = realloc(file_lines, sizeof(char *) * total_lines_read);
+
+    fclose(file_handler);
+
+    // allocate memory for table
+    Raw_file *raw = (Raw_file *)malloc(sizeof(Raw_file));
+    raw->n_rows = total_lines_read;
+    raw->file_content = file_lines;
+
+    return raw;
+}
+
+void _free_file_lines(Raw_file *raw_file){
+
+    for (int i = 0; i < raw_file->n_rows; i++)
+        free(raw_file->file_content[i]);
+    
+    free(raw_file->file_content);
+}
+
+void _print_file_lines(Raw_file *raw_file){
+
+    for (int i = 0; i < raw_file->n_rows; i++)
+        printf("%s", raw_file->file_content[i]);
+    printf("\n");
+
 }
