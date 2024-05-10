@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+#define array_length(arr) (sizeof(arr) / sizeof(*(arr)))
+
 // STRUCTS
 typedef struct {
     char ***data;
@@ -22,10 +24,25 @@ typedef struct {
 void print_usage(void);
 void print_table(Table *table);
 Table *read_csv(char *filepath);
+
 Raw_file *_read_file_lines(char *filepath);
 void _free_file_lines(Raw_file *raw_file);
 void _print_file_lines(Raw_file *raw_file);
 
+int _get_array_lenght_int(int *arr);
+int _get_array_lenght_str(char *arr);
+
+char *_copy_array_str(char *arr);
+char **_split_str(char *arr, char *sep);
+char *_join_str(char *arr1, char *arr2, char sep);
+
+/* char *_copy_array_str(char *arr){
+
+} */
+
+/* char *_join_str(char *arr1, char *arr2, char sep){
+    
+} */
 
 // MAIN
 int main(int argc, char *argv[]){
@@ -35,6 +52,9 @@ int main(int argc, char *argv[]){
 
         Raw_file *raw = _read_file_lines(argv[1]);
         _print_file_lines(raw);
+
+        char **test = _split_str(raw->file_content[0], ",");
+        printf("%s\n", test[1]);
 
         //Table *table = read_csv(argv[1]);
         //print_table(table); 
@@ -199,8 +219,7 @@ Raw_file *_read_file_lines(char *filepath){
     size_t total_chars_read = 0;
     char read_char;
     
-    // loop will read each char from the file until the end of the file is 
-    // reached or an error occurs reading from the file
+    // loop will read each char from the file until EOF
     do 
     {
         // read char from the file and store it
@@ -299,4 +318,48 @@ void _print_file_lines(Raw_file *raw_file){
         printf("%s", raw_file->file_content[i]);
     printf("\n");
 
+}
+
+int _get_array_lenght_int(int *arr){
+    int length = 0;
+    while (arr[length] != '\0') {
+        length++;
+    }
+    return length;
+}
+
+int _get_array_lenght_str(char *arr){
+    int length = 0;
+    while (arr[length] != '\0') {
+        length++;
+    }
+    return length;
+}
+
+char **_split_str(char *arr, char *sep){
+    /*
+    Takes a string as input and returns 2D array with each
+    word that were separated by the sep
+    */
+    const int n_words = 1024;
+    size_t total_words_read = 0;
+
+
+    char** output_arr = malloc(sizeof(char *) * n_words);
+
+    char* token = strtok(arr, sep);
+    while (token != NULL) {
+
+        int token_lenght = strlen(token);
+
+        output_arr[total_words_read] = malloc(token_lenght);
+        strcpy(output_arr[total_words_read], token);
+        token = strtok(NULL, ",");
+
+        total_words_read++;
+    }
+
+    output_arr = realloc(output_arr, sizeof(char *) * total_words_read);
+
+    return output_arr;
 }
