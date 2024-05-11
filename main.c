@@ -29,11 +29,12 @@ int _get_array_lenght_int(int *arr);
 int _get_array_lenght_str(char *arr);
 
 Str_collection *_read_file_lines(char *filepath);
-void _free_str_collection(Str_collection *raw_file);
-void _print_str_collection(Str_collection *raw_file);
+void _free_str_collection(Str_collection *coll);
+void _print_str_collection(Str_collection *coll);
 Str_collection *_split_str(char *arr, char *sep);
-char *_join_str(Str_collection *arr, char *sep);
+char *_join_str(Str_collection *coll, char *sep);
 
+/*
 Str_collection *_init_str_collection(char *str);
 Str_collection *_append_str_collection(Str_collection *coll,char *str);
 
@@ -41,8 +42,10 @@ Str_collection *_init_str_collection(char *str){
 
 }
 Str_collection *_append_str_collection(Str_collection *coll,char *str){
-    
+
 }
+*/
+
 
 // MAIN
 int main(int argc, char *argv[]){
@@ -212,7 +215,7 @@ Str_collection *_read_file_lines(char *filepath){
     FILE *file_handler = fopen(filepath, "r");
     if (file_handler == NULL) {
         printf("Error opening the file!\n");
-        return 1;
+        exit(EXIT_FAILURE);
     }
     
     char **file_lines;
@@ -233,7 +236,7 @@ Str_collection *_read_file_lines(char *filepath){
         if (ferror(file_handler))
         {
             printf("Error reading from file.\n");
-            return 1;
+            exit(EXIT_FAILURE);
         }
         
         // if we reach the end of the file stop reading from the file
@@ -308,18 +311,18 @@ Str_collection *_read_file_lines(char *filepath){
     return raw;
 }
 
-void _free_str_collection(Str_collection *raw_file){
+void _free_str_collection(Str_collection *coll){
 
-    for (int i = 0; i < raw_file->n_strings; i++)
-        free(raw_file->strings[i]);
+    for (int i = 0; i < coll->n_strings; i++)
+        free(coll->strings[i]);
     
-    free(raw_file->strings);
+    free(coll->strings);
 }
 
-void _print_str_collection(Str_collection *raw_file){
+void _print_str_collection(Str_collection *coll){
 
-    for (int i = 0; i < raw_file->n_strings; i++)
-        printf("%s ", raw_file->strings[i]);
+    for (int i = 0; i < coll->n_strings; i++)
+        printf("%s ", coll->strings[i]);
     printf("\n");
 
 }
