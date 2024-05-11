@@ -15,9 +15,9 @@ typedef struct {
 } Table;
 
 typedef struct {
-    char **file_content;
-    int n_rows;
-} Raw_file;
+    char **strings;
+    int n_strings;
+} Str_collection;
 
 
 // PROTOTYPES
@@ -25,24 +25,24 @@ void print_usage(void);
 void print_table(Table *table);
 Table *read_csv(char *filepath);
 
-Raw_file *_read_file_lines(char *filepath);
-void _free_file_lines(Raw_file *raw_file);
-void _print_file_lines(Raw_file *raw_file);
-
 int _get_array_lenght_int(int *arr);
 int _get_array_lenght_str(char *arr);
 
-char *_copy_array_str(char *arr);
-char **_split_str(char *arr, char *sep);
-char *_join_str(char *arr1, char *arr2, char sep);
+Str_collection *_read_file_lines(char *filepath);
+void _free_str_collection(Str_collection *raw_file);
+void _print_str_collection(Str_collection *raw_file);
+Str_collection *_split_str(char *arr, char *sep);
+char *_join_str(Str_collection *arr, char *sep);
 
-/* char *_copy_array_str(char *arr){
+Str_collection *_init_str_collection(char *str);
+Str_collection *_append_str_collection(Str_collection *coll,char *str);
 
-} */
+Str_collection *_init_str_collection(char *str){
 
-/* char *_join_str(char *arr1, char *arr2, char sep){
+}
+Str_collection *_append_str_collection(Str_collection *coll,char *str){
     
-} */
+}
 
 // MAIN
 int main(int argc, char *argv[]){
@@ -50,11 +50,15 @@ int main(int argc, char *argv[]){
     if (argc == 2)
     {
 
-        Raw_file *raw = _read_file_lines(argv[1]);
-        _print_file_lines(raw);
+        Str_collection *raw = _read_file_lines(argv[1]);
+        _print_str_collection(raw);
 
-        char **test = _split_str(raw->file_content[0], ",");
-        printf("%s\n", test[1]);
+        Str_collection *test = _split_str(raw->strings[1], ",");
+        _print_str_collection(test);
+
+        char *stringlet = _join_str(test, " ");
+        printf("%s\n", stringlet);
+        
 
         //Table *table = read_csv(argv[1]);
         //print_table(table); 
@@ -194,7 +198,7 @@ Table *read_csv(char *filepath) {
     return table;
 }
 
-Raw_file *_read_file_lines(char *filepath){
+Str_collection *_read_file_lines(char *filepath){
 
     /*
     utility function that will read any text file and
@@ -297,25 +301,25 @@ Raw_file *_read_file_lines(char *filepath){
     fclose(file_handler);
 
     // allocate memory for table
-    Raw_file *raw = (Raw_file *)malloc(sizeof(Raw_file));
-    raw->n_rows = total_lines_read;
-    raw->file_content = file_lines;
+    Str_collection *raw = (Str_collection *)malloc(sizeof(Str_collection));
+    raw->n_strings = total_lines_read;
+    raw->strings = file_lines;
 
     return raw;
 }
 
-void _free_file_lines(Raw_file *raw_file){
+void _free_str_collection(Str_collection *raw_file){
 
-    for (int i = 0; i < raw_file->n_rows; i++)
-        free(raw_file->file_content[i]);
+    for (int i = 0; i < raw_file->n_strings; i++)
+        free(raw_file->strings[i]);
     
-    free(raw_file->file_content);
+    free(raw_file->strings);
 }
 
-void _print_file_lines(Raw_file *raw_file){
+void _print_str_collection(Str_collection *raw_file){
 
-    for (int i = 0; i < raw_file->n_rows; i++)
-        printf("%s", raw_file->file_content[i]);
+    for (int i = 0; i < raw_file->n_strings; i++)
+        printf("%s ", raw_file->strings[i]);
     printf("\n");
 
 }
@@ -336,14 +340,47 @@ int _get_array_lenght_str(char *arr){
     return length;
 }
 
-char **_split_str(char *arr, char *sep){
+char *_join_str(Str_collection *coll, char *sep){
+    /*
+    Takes a an array of strings as input and returns a string
+    concatenated by the separator
+    */
+    const int n_chars_init = 1024;
+    int n_chars = 0;
+
+    char* output_arr = malloc(n_chars_init);
+
+    for (int i = 0; i < coll->n_strings; i++){
+
+        char *token = coll->strings[i];
+        int str_length = strlen(token);
+
+        for (int j = 0; j <= str_length; j++){
+
+            if ( j == str_length )
+                output_arr[n_chars] = sep[0];
+            else
+                output_arr[n_chars] = token[j];
+
+            n_chars++;
+        }
+    }
+
+    output_arr = realloc(output_arr, sizeof(char) * (n_chars));
+    output_arr[n_chars - 1] = '\0';
+
+    _free_str_collection(coll);
+
+    return output_arr;
+}
+
+Str_collection *_split_str(char *arr, char *sep){
     /*
     Takes a string as input and returns 2D array with each
     word that were separated by the sep
     */
     const int n_words = 1024;
     size_t total_words_read = 0;
-
 
     char** output_arr = malloc(sizeof(char *) * n_words);
 
@@ -361,5 +398,10 @@ char **_split_str(char *arr, char *sep){
 
     output_arr = realloc(output_arr, sizeof(char *) * total_words_read);
 
-    return output_arr;
+    // allocate memory for output struct
+    Str_collection *raw = (Str_collection *)malloc(sizeof(Str_collection));
+    raw->n_strings = total_words_read;
+    raw->strings = output_arr;
+
+    return raw;
 }
