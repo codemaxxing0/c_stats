@@ -25,6 +25,7 @@ void print_usage(void);
 void print_table(Table *table);
 Table *read_csv(char *filepath);
 
+char *copy_str(char *str);
 int _get_array_lenght_int(int *arr);
 int _get_array_lenght_str(char *arr);
 
@@ -34,17 +35,41 @@ void _print_str_collection(Str_collection *coll);
 Str_collection *_split_str(char *arr, char *sep);
 char *_join_str(Str_collection *coll, char *sep);
 
-/*
 Str_collection *_init_str_collection(char *str);
-Str_collection *_append_str_collection(Str_collection *coll,char *str);
-
 Str_collection *_init_str_collection(char *str){
 
+    int str_length = strlen(str);
+    char *str2 = copy_str(str);
+
+    char **file_lines = malloc(sizeof(char *));
+    file_lines[0] = malloc(str_length);
+    file_lines[0] = str2;
+
+    Str_collection *coll = (Str_collection *)malloc(sizeof(Str_collection));
+    coll->n_strings = 1;
+    coll->strings = file_lines;
+
+    return coll;
 }
-Str_collection *_append_str_collection(Str_collection *coll,char *str){
+
+void _append_str_collection(Str_collection *coll,char *str);
+void _append_str_collection(Str_collection *coll,char *str){
+
+    int new_index = coll->n_strings;
+    char **file_lines = coll->strings;
+
+    int str_length = strlen(str);
+    char *str2 = copy_str(str);
+
+    file_lines = realloc(file_lines, sizeof(char *) * (new_index + 1));
+    file_lines[new_index] = malloc(str_length);
+    file_lines[new_index] = str2;
+
+    coll->n_strings = new_index + 1;
+    coll->strings = file_lines;
 
 }
-*/
+
 
 
 // MAIN
@@ -59,8 +84,19 @@ int main(int argc, char *argv[]){
         Str_collection *test = _split_str(raw->strings[1], ",");
         _print_str_collection(test);
 
-        char *stringlet = _join_str(test, " ");
+        char *stringlet = _join_str(test, "-");
         printf("%s\n", stringlet);
+
+        char *test1 = copy_str(stringlet);
+        printf("%s\n", test1);
+
+        Str_collection *init = _init_str_collection("Hello");
+        printf("%s\n", init->strings[0]);
+
+        _append_str_collection(init, "Hello2");
+        printf("%s\n", init->strings[0]);
+        printf("%s\n", init->strings[1]);
+        _print_str_collection(init);
         
 
         //Table *table = read_csv(argv[1]);
@@ -407,4 +443,16 @@ Str_collection *_split_str(char *arr, char *sep){
     raw->strings = output_arr;
 
     return raw;
+}
+
+char *copy_str(char *str){
+    /*
+    Put array string on the heap 
+    */
+
+    char *output = malloc(strlen(str) * sizeof(char));
+    strcpy(output, str);
+    //free(str);
+
+    return output;
 }
