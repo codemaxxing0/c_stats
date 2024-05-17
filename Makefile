@@ -1,9 +1,9 @@
 .PHONY: all, clean
 
-all: main.o
+all: main
 
-main.o: main.c
-	gcc main.c -o main.o -Wall -Wextra
+main: main.c lib/str_coll.c
+	gcc -o main main.c lib/str_coll.c -Wall -Wextra
 
 clean:
 	rm -f *.o
